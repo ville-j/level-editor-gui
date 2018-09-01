@@ -21,6 +21,28 @@ class LevelEditorGUI {
       this.loop();
     });
   }
+  mouseOnVertex(e) {
+    let minDist = 10;
+    let cv;
+    let cp;
+    this._editor.level.polygons.map(p => {
+      p.vertices.map(v => {
+        let distance = Math.hypot(e.clientX - this.vxtox(v.x), e.clientY - this.vytoy(v.y));
+        if (distance < minDist && !this._ap) {
+          minDist = distance;
+          cv = v;
+          cp = p;
+        }
+      });
+    });
+    if (cv) {
+      let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, cv.id);
+      this._av = this._editor.findVertex(vertexId, cp);
+      this._ap = cp;
+      return true;
+    }
+    return false;
+  }
   addEventListeners() {
     document.addEventListener("contextmenu", (e) => {
       e.preventDefault();
@@ -29,22 +51,28 @@ class LevelEditorGUI {
       switch (e.button) {
         case 0:
           if (!this._ap) {
-            let polygonId = this._editor.createPolygon([{
-              x: this.xtovx(e.clientX),
-              y: this.ytovy(e.clientY)
-            }], false);
+            if (!this.mouseOnVertex(e)) {
+              let polygonId = this._editor.createPolygon([{
+                x: this.xtovx(e.clientX),
+                y: this.ytovy(e.clientY)
+              }], false);
 
-            let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._editor.findPolygon(polygonId));
-            this._ap = this._editor.findPolygon(polygonId);
-            this._av = this._editor.findVertex(vertexId, this._ap);
-          } else {
+              let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._editor.findPolygon(polygonId));
+              this._ap = this._editor.findPolygon(polygonId);
+              this._av = this._editor.findVertex(vertexId, this._ap);
+            }
+          } else if (this._ap) {
             let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, this._av.id);
             this._av = this._editor.findVertex(vertexId, this._ap);
           }
           break;
         case 2:
           if (this._ap && this._av) {
-            this._editor.deleteVertex(this._ap, this._av.id);
+            if (this._ap.vertices.length < 4) {
+              this._editor.deletePolygon(this._ap.id);
+            } else {
+              this._editor.deleteVertex(this._ap, this._av.id);
+            }
             this._av = null;
             this._ap = null;
           }
@@ -63,6 +91,12 @@ class LevelEditorGUI {
   }
   ytovy(y) {
     return (y - this._viewPortOffset.y) / this._zoom;
+  }
+  vxtox(vx) {
+    return vx * this._zoom + this._viewPortOffset.x;
+  }
+  vytoy(vy) {
+    return vy * this._zoom + this._viewPortOffset.y;
   }
   resizeCanvas() {
     this._canvas.width = this._container.offsetWidth;
@@ -119,8 +153,8 @@ class LevelEditorGUI {
   }
   render() {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-    this._ctx.fillStyle = "#95a0a8";
-    this._ctx.strokeStyle = "red";
+    this._ctx.fillStyle = "#edf1f2";
+    this._ctx.strokeStyle = "#00c7ff";
     this._ctx.save();
     this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
     this._ctx.scale(this._zoom, this._zoom);
