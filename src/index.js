@@ -231,13 +231,14 @@ class LevelEditorGUI {
     });
     this._ctx.closePath();
     this._ctx.fill();
+    this._ctx.restore();
 
     if (this._drawAllEdges) {
-      this._ctx.restore();
       this._ctx.stroke();
-    }
-
-    if (this._ap) {
+    } else if (this._ap) {
+      this._ctx.save();
+      this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
+      this._ctx.scale(this._zoom, this._zoom);
       this._ctx.beginPath();
       this._ap.vertices.map((v, i) => {
         if (i === 0)
@@ -249,7 +250,6 @@ class LevelEditorGUI {
       this._ctx.restore();
       this._ctx.stroke();
     }
-    this._ctx.restore();
   }
 }
 
