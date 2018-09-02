@@ -10,6 +10,7 @@ class LevelEditorGUI {
     this._editor = new LevelEditor();
     this._container = document.getElementById("level-editor-gui");
     this._canvas = document.createElement("canvas");
+    this._canvas.tabIndex = 0;
     this._ctx = this._canvas.getContext("2d", {
       alpha: true
     });
@@ -56,15 +57,29 @@ class LevelEditorGUI {
     this._viewPortOffset.y += e.clientY - this.vytoy(mousePointY);
   }
   addEventListeners() {
-    document.addEventListener("contextmenu", (e) => {
+    this._canvas.addEventListener("contextmenu", (e) => {
       e.preventDefault();
     });
-    document.addEventListener("mousewheel", (e) => {
+    this._canvas.addEventListener("mousewheel", (e) => {
       this.zoom(e);
     }, false);
-    document.addEventListener("DOMMouseScroll", (e) => {
+    this._canvas.addEventListener("DOMMouseScroll", (e) => {
       this.zoom(e);
     }, false);
+    this._canvas.addEventListener("keydown", (e) => {
+      switch (e.keyCode) {
+        case 16:
+          this._drawAllEdges = true;
+          break;
+      }
+    });
+    this._canvas.addEventListener("keyup", (e) => {
+      switch (e.keyCode) {
+        case 16:
+          this._drawAllEdges = false;
+          break;
+      }
+    });
     this._canvas.addEventListener("mouseup", (e) => {
       switch (e.button) {
         case 1:
@@ -76,6 +91,9 @@ class LevelEditorGUI {
       switch (e.button) {
         case 0:
           if (!this._ap) {
+            /**
+             * Create new polygon and start editing/adding vertices
+             */
             if (!this.mouseOnVertex(e)) {
               let polygonId = this._editor.createPolygon([{
                 x: this.xtovx(e.clientX),
@@ -87,6 +105,9 @@ class LevelEditorGUI {
               this._av = this._editor.findVertex(vertexId, this._ap);
             }
           } else if (this._ap) {
+            /**
+             * Polygon editing active, add new vertex
+             */
             let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, this._av.id);
             this._av = this._editor.findVertex(vertexId, this._ap);
           }
@@ -95,6 +116,9 @@ class LevelEditorGUI {
           this._middleDrag = true;
           break;
         case 2:
+          /**
+           * Stop polygon editing, delete polygon if not enough vertices
+           */
           if (this._ap) {
             if (this._ap.vertices.length < 4) {
               this._editor.deletePolygon(this._ap.id);
@@ -207,6 +231,11 @@ class LevelEditorGUI {
     });
     this._ctx.closePath();
     this._ctx.fill();
+
+    if (this._drawAllEdges) {
+      this._ctx.restore();
+      this._ctx.stroke();
+    }
 
     if (this._ap) {
       this._ctx.beginPath();
