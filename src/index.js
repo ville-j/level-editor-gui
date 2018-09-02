@@ -7,6 +7,8 @@ class LevelEditorGUI {
       y: 50
     }
     this._zoom = 50;
+    this._direction = 0;
+    this._drawAllEdges = true;
     this._editor = new LevelEditor();
     this._container = document.getElementById("level-editor-gui");
     this._canvas = document.createElement("canvas");
@@ -37,7 +39,8 @@ class LevelEditorGUI {
       });
     });
     if (cv) {
-      let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, cv.id);
+      let createAfter = cv.id;
+      let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, createAfter, this._direction);
       this._av = this._editor.findVertex(vertexId, cp);
       this._ap = cp;
       return true;
@@ -66,17 +69,13 @@ class LevelEditorGUI {
     this._canvas.addEventListener("DOMMouseScroll", (e) => {
       this.zoom(e);
     }, false);
-    this._canvas.addEventListener("keydown", (e) => {
-      switch (e.keyCode) {
-        case 16:
-          this._drawAllEdges = true;
-          break;
-      }
-    });
     this._canvas.addEventListener("keyup", (e) => {
       switch (e.keyCode) {
         case 16:
-          this._drawAllEdges = false;
+          this._drawAllEdges = !this._drawAllEdges;
+          break;
+        case 32:
+          this._direction = !this._direction;
           break;
       }
     });
@@ -108,7 +107,8 @@ class LevelEditorGUI {
             /**
              * Polygon editing active, add new vertex
              */
-            let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, this._av.id);
+            let createAfter = this._av.id;
+            let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, createAfter, this._direction);
             this._av = this._editor.findVertex(vertexId, this._ap);
           }
           break;
@@ -230,7 +230,9 @@ class LevelEditorGUI {
       this._ctx.lineTo(d[0].x, d[0].y);
     });
     this._ctx.closePath();
-    this._ctx.fill();
+    if (!this._drawAllEdges) {
+      this._ctx.fill();
+    }
     this._ctx.restore();
 
     if (this._drawAllEdges) {
