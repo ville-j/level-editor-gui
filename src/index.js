@@ -95,7 +95,7 @@ class LevelEditorGUI {
           this._middleDrag = true;
           break;
         case 2:
-          if (this._ap && this._av) {
+          if (this._ap) {
             if (this._ap.vertices.length < 4) {
               this._editor.deletePolygon(this._ap.id);
             } else {
@@ -170,7 +170,6 @@ class LevelEditorGUI {
     });
     return i % 2 !== 0;
   }
-
   isClockwise(vertices) {
     let sum = 0;
     let v = vertices.slice(0);
@@ -207,9 +206,21 @@ class LevelEditorGUI {
       this._ctx.lineTo(d[0].x, d[0].y);
     });
     this._ctx.closePath();
-    this._ctx.restore();
     this._ctx.fill();
-    this._ctx.stroke();
+
+    if (this._ap) {
+      this._ctx.beginPath();
+      this._ap.vertices.map((v, i) => {
+        if (i === 0)
+          this._ctx.moveTo(v.x, v.y);
+        else
+          this._ctx.lineTo(v.x, v.y);
+      });
+      this._ctx.closePath();
+      this._ctx.restore();
+      this._ctx.stroke();
+    }
+    this._ctx.restore();
   }
 }
 
