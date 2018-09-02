@@ -43,9 +43,29 @@ class LevelEditorGUI {
     }
     return false;
   }
+  zoom(e) {
+    let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    if (delta > 0)
+      this._zoom *= 1.2;
+    else
+      this._zoom *= 0.8;
+  }
   addEventListeners() {
     document.addEventListener("contextmenu", (e) => {
       e.preventDefault();
+    });
+    document.addEventListener("mousewheel", (e) => {
+      this.zoom(e);
+    }, false);
+    document.addEventListener("DOMMouseScroll", (e) => {
+      this.zoom(e);
+    }, false);
+    this._canvas.addEventListener("mouseup", (e) => {
+      switch (e.button) {
+        case 1:
+          this._middleDrag = false;
+          break;
+      }
     });
     this._canvas.addEventListener("mousedown", (e) => {
       switch (e.button) {
@@ -66,6 +86,9 @@ class LevelEditorGUI {
             this._av = this._editor.findVertex(vertexId, this._ap);
           }
           break;
+        case 1:
+          this._middleDrag = true;
+          break;
         case 2:
           if (this._ap && this._av) {
             if (this._ap.vertices.length < 4) {
@@ -84,6 +107,12 @@ class LevelEditorGUI {
         this._av.x = this.xtovx(e.clientX);
         this._av.y = this.ytovy(e.clientY);
       }
+      if (this._middleDrag && this._preMouse) {
+        this._viewPortOffset.x += e.clientX - this._preMouse.clientX;
+        this._viewPortOffset.y += e.clientY - this._preMouse.clientY;
+      }
+
+      this._preMouse = e;
     });
   }
   xtovx(x) {
@@ -173,9 +202,8 @@ class LevelEditorGUI {
       this._ctx.lineTo(d[0].x, d[0].y);
     });
     this._ctx.closePath();
-    this._ctx.clip();
-    this._ctx.fillRect(this._viewPortOffset.x * -1, this._viewPortOffset.y * -1, this._canvas.width, this._canvas.height);
     this._ctx.restore();
+    this._ctx.fill();
     this._ctx.stroke();
   }
 }
@@ -185,21 +213,3 @@ module.exports = LevelEditorGUI;
 let gui = new LevelEditorGUI();
 gui.init();
 gui.newLevel();
-
-gui._editor.createPolygon([{
-    x: 1,
-    y: 1
-  },
-  {
-    x: 1,
-    y: 2
-  },
-  {
-    x: 2,
-    y: 2
-  },
-  {
-    x: 2,
-    y: 1
-  }
-], false);
