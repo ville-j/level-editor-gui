@@ -45,10 +45,15 @@ class LevelEditorGUI {
   }
   zoom(e) {
     let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    let mousePointX = this.xtovx(e.clientX);
+    let mousePointY = this.ytovy(e.clientY);
     if (delta > 0)
       this._zoom *= 1.2;
     else
       this._zoom *= 0.8;
+
+    this._viewPortOffset.x += e.clientX - this.vxtox(mousePointX);
+    this._viewPortOffset.y += e.clientY - this.vytoy(mousePointY);
   }
   addEventListeners() {
     document.addEventListener("contextmenu", (e) => {
