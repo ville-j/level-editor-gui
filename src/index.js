@@ -69,13 +69,20 @@ class LevelEditorGUI {
     this._canvas.addEventListener("DOMMouseScroll", (e) => {
       this.zoom(e);
     }, false);
-    this._canvas.addEventListener("keyup", (e) => {
+    this._canvas.addEventListener("keydown", (e) => {
       switch (e.keyCode) {
         case 16:
           this._drawAllEdges = !this._drawAllEdges;
           break;
         case 32:
-          this._direction = !this._direction;
+          if (this._ap) {
+            let i = this._direction === 1 ? -1 : 1;
+            let index = this._editor.findVertexIndex(this._av.id, this._ap) + i;
+            let ci = this._av.id;
+            this._direction = this._direction === 0 ? 1 : 0;
+            this._av = this._editor.findVertex(this._editor.createVertex(this._av.x, this._av.y, this._ap, this._ap.vertices[index].id, this._direction), this._ap);
+            this._editor.deleteVertex(this._ap, ci);
+          }
           break;
       }
     });
