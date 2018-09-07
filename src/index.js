@@ -61,6 +61,9 @@ class LevelEditorGUI {
     this._viewPortOffset.y += e.clientY - this.vytoy(mousePointY);
   }
   addEventListeners() {
+    window.addEventListener('resize', () => {
+      this.resizeCanvas();
+    });
     this._canvas.addEventListener("contextmenu", (e) => {
       e.preventDefault();
     });
@@ -212,7 +215,7 @@ class LevelEditorGUI {
   }
   render() {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-    this._ctx.fillStyle = "#e2e2e2";
+    this._ctx.fillStyle = "#f2f2f2";
     this._ctx.strokeStyle = this._strokeColor;
     this._ctx.save();
     this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
@@ -254,6 +257,31 @@ class LevelEditorGUI {
       this._ctx.restore();
       this._ctx.stroke();
     }
+
+    this._editor.level.objects.map(o => {
+      switch (o.type) {
+        case 'apple':
+          this._ctx.strokeStyle = "#dd0404";
+          break;
+        case 'killer':
+          this._ctx.strokeStyle = "#8d0ad3";
+          break;
+        case 'start':
+          this._ctx.strokeStyle = "#0b6b08";
+          break;
+        case 'exit':
+          this._ctx.strokeStyle = "#fff";
+          break;
+      }
+      this._ctx.save();
+      this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
+      this._ctx.scale(this._zoom, this._zoom);
+      this._ctx.beginPath();
+      this._ctx.arc(o.x, o.y, 0.4, 0, 2 * Math.PI);
+      this._ctx.closePath();
+      this._ctx.restore();
+      this._ctx.stroke();
+    });
   }
 }
 
