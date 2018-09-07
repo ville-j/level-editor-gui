@@ -24,6 +24,8 @@ class LevelEditorGUI {
     window.requestAnimationFrame(() => {
       this.loop();
     });
+
+    this._editor.connect();
   }
   mouseOnVertex(e) {
     let minDist = 10;
@@ -134,8 +136,7 @@ class LevelEditorGUI {
 
     this._canvas.addEventListener("mousemove", (e) => {
       if (this._av) {
-        this._av.x = this.xtovx(e.clientX);
-        this._av.y = this.ytovy(e.clientY);
+        this._editor.updateVertex(this._av, this._ap, this.xtovx(e.clientX), this.ytovy(e.clientY));
       }
       if (this._middleDrag && this._preMouse) {
         this._viewPortOffset.x += e.clientX - this._preMouse.clientX;
