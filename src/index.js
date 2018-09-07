@@ -8,6 +8,7 @@ class LevelEditorGUI {
     }
     this._zoom = 50;
     this._direction = 0;
+    this._strokeColor = "#db0855";
     this._drawAllEdges = true;
     this._editor = new LevelEditor();
     this._container = document.getElementById("level-editor-gui");
@@ -39,9 +40,7 @@ class LevelEditorGUI {
       });
     });
     if (cv) {
-      let createAfter = cv.id;
-      let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, createAfter, this._direction);
-      this._av = this._editor.findVertex(vertexId, cp);
+      this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, cv.id, this._direction);
       this._ap = cp;
       return true;
     }
@@ -80,7 +79,7 @@ class LevelEditorGUI {
             let index = this._editor.findVertexIndex(this._av.id, this._ap) + i;
             let ci = this._av.id;
             this._direction = this._direction === 0 ? 1 : 0;
-            this._av = this._editor.findVertex(this._editor.createVertex(this._av.x, this._av.y, this._ap, this._ap.vertices[index].id, this._direction), this._ap);
+            this._av = this._editor.createVertex(this._av.x, this._av.y, this._ap, this._ap.vertices[index].id, this._direction);
             this._editor.deleteVertex(this._ap, ci);
           }
           break;
@@ -101,22 +100,17 @@ class LevelEditorGUI {
              * Create new polygon and start editing/adding vertices
              */
             if (!this.mouseOnVertex(e)) {
-              let polygonId = this._editor.createPolygon([{
+              this._ap = this._editor.createPolygon([{
                 x: this.xtovx(e.clientX),
                 y: this.ytovy(e.clientY)
               }], false);
-
-              let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._editor.findPolygon(polygonId));
-              this._ap = this._editor.findPolygon(polygonId);
-              this._av = this._editor.findVertex(vertexId, this._ap);
+              this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap);
             }
           } else if (this._ap) {
             /**
              * Polygon editing active, add new vertex
              */
-            let createAfter = this._av.id;
-            let vertexId = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, createAfter, this._direction);
-            this._av = this._editor.findVertex(vertexId, this._ap);
+            this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, this._av.id, this._direction);
           }
           break;
         case 1:
@@ -217,8 +211,8 @@ class LevelEditorGUI {
   }
   render() {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-    this._ctx.fillStyle = "#edf1f2";
-    this._ctx.strokeStyle = "#00c7ff";
+    this._ctx.fillStyle = "#e2e2e2";
+    this._ctx.strokeStyle = this._strokeColor;
     this._ctx.save();
     this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
     this._ctx.scale(this._zoom, this._zoom);
