@@ -23,6 +23,11 @@ class LevelEditorGUI {
     this.resize();
     this._wrapper.appendChild(this._canvas);
     this._container.appendChild(this._wrapper);
+    this._selection = {
+      vertices: [],
+      objects: [],
+      pictures: []
+    };
     window.requestAnimationFrame(() => {
       this.loop();
     });
@@ -92,6 +97,25 @@ class LevelEditorGUI {
     }
     return false;
   }
+  getCloseVertex(e) {
+    let minDist = 10;
+    let cv;
+    let cp;
+    this._editor.level.polygons.map(p => {
+      p.vertices.map(v => {
+        let distance = Math.hypot(e.x - this.vxtox(v.x), e.y - this.vytoy(v.y));
+        if (distance < minDist && !this._ap) {
+          minDist = distance;
+          cv = v;
+          cp = p;
+        }
+      });
+    });
+    return {
+      polygon: cp,
+      vertex: cv
+    }
+  }
   zoom(e) {
     let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
     let mousePointX = this.xtovx(e.clientX);
@@ -136,6 +160,13 @@ class LevelEditorGUI {
     });
     this._canvas.addEventListener("mouseup", (e) => {
       switch (e.button) {
+        case 0:
+          this._drag = false;
+          if (this._activeTool === "select") {
+            this._ap = null;
+            this._av = null;
+          }
+          break;
         case 1:
           this._middleDrag = false;
           break;
@@ -149,39 +180,64 @@ class LevelEditorGUI {
       }
       switch (e.button) {
         case 0:
-          if (!this._ap) {
-            /**
-             * Create new polygon and start editing/adding vertices
-             */
-            if (!this.mouseOnVertex(event)) {
-              this._ap = this._editor.createPolygon([{
-                x: this.xtovx(event.x),
-                y: this.ytovy(event.y)
-              }], false);
-              this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap);
+          this._drag = true;
+          if (this._activeTool === "polygon") {
+            if (!this._ap) {
+              /**
+               * Create new polygon and start editing/adding vertices
+               */
+              if (!this.mouseOnVertex(event)) {
+                this._ap = this._editor.createPolygon([{
+                  x: this.xtovx(event.x),
+                  y: this.ytovy(event.y)
+                }], false);
+                this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap);
+              }
+            } else if (this._ap) {
+              /**
+               * Polygon editing active, add new vertex
+               */
+              this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap, this._av.id, this._direction);
             }
-          } else if (this._ap) {
-            /**
-             * Polygon editing active, add new vertex
-             */
-            this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap, this._av.id, this._direction);
+          }
+
+          if (this._activeTool === "select") {
+            let v = this.getCloseVertex(event);
+            if (v.vertex) {
+              let existing = this._selection.vertices.findIndex(ve => {
+                return ve.vertex.id === v.vertex.id;
+              });
+              if (existing < 0) {
+                if (e.ctrlKey)
+                  this._selection.vertices.push(v);
+                else
+                  this._selection.vertices = [v];
+              } else {
+                if (e.ctrlKey)
+                  this._selection.vertices.splice(existing, 1);
+              }
+            } else {
+              this._selection.vertices = [];
+            }
           }
           break;
         case 1:
           this._middleDrag = true;
           break;
         case 2:
-          /**
-           * Stop polygon editing, delete polygon if not enough vertices
-           */
-          if (this._ap) {
-            if (this._ap.vertices.length < 4) {
-              this._editor.deletePolygon(this._ap.id);
-            } else {
-              this._editor.deleteVertex(this._ap, this._av.id);
+          if (this._activeTool === "polygon") {
+            /**
+             * Stop polygon editing, delete polygon if not enough vertices
+             */
+            if (this._ap) {
+              if (this._ap.vertices.length < 4) {
+                this._editor.deletePolygon(this._ap.id);
+              } else {
+                this._editor.deleteVertex(this._ap, this._av.id);
+              }
+              this._av = null;
+              this._ap = null;
             }
-            this._av = null;
-            this._ap = null;
           }
       }
     });
@@ -192,8 +248,19 @@ class LevelEditorGUI {
         x: e.clientX - boundingRect.x,
         y: e.clientY - boundingRect.y
       }
-      if (this._av) {
-        this._editor.updateVertex(this._av, this._ap, this.xtovx(event.x), this.ytovy(event.y));
+
+      if (this._activeTool === "polygon") {
+        if (this._av) {
+          this._editor.updateVertex(this._av, this._ap, this.xtovx(event.x), this.ytovy(event.y));
+        }
+      }
+
+      if (this._activeTool === "select") {
+        if (this._drag) {
+          this._selection.vertices.map(v => {
+            this._editor.updateVertex(v.vertex, v.polygon, this.xtovx(this.vxtox(v.vertex.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.vertex.y) + (event.y - this._preMouse.y)));
+          });
+        }
       }
       if (this._middleDrag && this._preMouse) {
         this._viewPortOffset.x += event.x - this._preMouse.x;
@@ -336,6 +403,18 @@ class LevelEditorGUI {
       this._ctx.restore();
       this._ctx.stroke();
     });
+
+    /**
+     * Selection handles
+     */
+    this._ctx.save();
+    this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
+    this._ctx.scale(this._zoom, this._zoom);
+    this._ctx.fillStyle = "#fff";
+    this._selection.vertices.map(v => {
+      this._ctx.fillRect(v.vertex.x - 2.5 / this._zoom, v.vertex.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
+    });
+    this._ctx.restore();
   }
 }
 
