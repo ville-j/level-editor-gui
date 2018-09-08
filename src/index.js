@@ -1,7 +1,7 @@
 const LevelEditor = require("level-editor");
 
 class LevelEditorGUI {
-  init() {
+  init(settings) {
     this._viewPortOffset = {
       x: 50,
       y: 50
@@ -11,7 +11,7 @@ class LevelEditorGUI {
     this._strokeColor = "#db0855";
     this._drawAllEdges = true;
     this._editor = new LevelEditor();
-    this._container = document.getElementById("level-editor-gui");
+    this._container = document.getElementById(settings.element || "level-editor-gui");
     this._canvas = document.createElement("canvas");
     this._canvas.tabIndex = 0;
     this._ctx = this._canvas.getContext("2d", {
@@ -24,8 +24,8 @@ class LevelEditorGUI {
     window.requestAnimationFrame(() => {
       this.loop();
     });
-
-    this._editor.connect();
+    if (settings.server)
+      this._editor.connect(settings.server);
   }
   mouseOnVertex(e) {
     let minDist = 10;
@@ -287,6 +287,8 @@ class LevelEditorGUI {
 
 module.exports = LevelEditorGUI;
 
-let gui = new LevelEditorGUI();
-gui.init();
-gui.newLevel();
+LEG = function (settings) {
+  const leg = new LevelEditorGUI();
+  leg.init(settings);
+  return leg;
+}
