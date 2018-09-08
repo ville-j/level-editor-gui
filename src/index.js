@@ -33,7 +33,7 @@ class LevelEditorGUI {
     let cp;
     this._editor.level.polygons.map(p => {
       p.vertices.map(v => {
-        let distance = Math.hypot(e.clientX - this.vxtox(v.x), e.clientY - this.vytoy(v.y));
+        let distance = Math.hypot(e.x - this.vxtox(v.x), e.y - this.vytoy(v.y));
         if (distance < minDist && !this._ap) {
           minDist = distance;
           cv = v;
@@ -42,7 +42,7 @@ class LevelEditorGUI {
       });
     });
     if (cv) {
-      this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), cp, cv.id, this._direction);
+      this._av = this._editor.createVertex(this.xtovx(e.x), this.ytovy(e.y), cp, cv.id, this._direction);
       this._ap = cp;
       return true;
     }
@@ -98,24 +98,29 @@ class LevelEditorGUI {
       }
     });
     this._canvas.addEventListener("mousedown", (e) => {
+      let boundingRect = this._canvas.getBoundingClientRect();
+      let event = {
+        x: e.clientX - boundingRect.x,
+        y: e.clientY - boundingRect.y
+      }
       switch (e.button) {
         case 0:
           if (!this._ap) {
             /**
              * Create new polygon and start editing/adding vertices
              */
-            if (!this.mouseOnVertex(e)) {
+            if (!this.mouseOnVertex(event)) {
               this._ap = this._editor.createPolygon([{
-                x: this.xtovx(e.clientX),
-                y: this.ytovy(e.clientY)
+                x: this.xtovx(event.x),
+                y: this.ytovy(event.y)
               }], false);
-              this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap);
+              this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap);
             }
           } else if (this._ap) {
             /**
              * Polygon editing active, add new vertex
              */
-            this._av = this._editor.createVertex(this.xtovx(e.clientX), this.ytovy(e.clientY), this._ap, this._av.id, this._direction);
+            this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap, this._av.id, this._direction);
           }
           break;
         case 1:
@@ -138,15 +143,20 @@ class LevelEditorGUI {
     });
 
     this._canvas.addEventListener("mousemove", (e) => {
+      let boundingRect = this._canvas.getBoundingClientRect();
+      let event = {
+        x: e.clientX - boundingRect.x,
+        y: e.clientY - boundingRect.y
+      }
       if (this._av) {
-        this._editor.updateVertex(this._av, this._ap, this.xtovx(e.clientX), this.ytovy(e.clientY));
+        this._editor.updateVertex(this._av, this._ap, this.xtovx(event.x), this.ytovy(event.y));
       }
       if (this._middleDrag && this._preMouse) {
-        this._viewPortOffset.x += e.clientX - this._preMouse.clientX;
-        this._viewPortOffset.y += e.clientY - this._preMouse.clientY;
+        this._viewPortOffset.x += event.x - this._preMouse.x;
+        this._viewPortOffset.y += event.y - this._preMouse.y;
       }
 
-      this._preMouse = e;
+      this._preMouse = event;
     });
   }
   xtovx(x) {
