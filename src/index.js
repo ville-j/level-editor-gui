@@ -13,19 +13,63 @@ class LevelEditorGUI {
     this._editor = new LevelEditor();
     this._container = document.getElementById(settings.element || "level-editor-gui");
     this._canvas = document.createElement("canvas");
+    this._wrapper = document.createElement("div");
+    this._wrapper.style = "position: relative;";
     this._canvas.tabIndex = 0;
     this._ctx = this._canvas.getContext("2d", {
       alpha: true
     });
     this.addEventListeners();
-    this.resizeCanvas();
-
-    this._container.appendChild(this._canvas);
+    this.resize();
+    this._wrapper.appendChild(this._canvas);
+    this._container.appendChild(this._wrapper);
     window.requestAnimationFrame(() => {
       this.loop();
     });
     if (settings.server)
       this._editor.connect(settings.server);
+
+    this._tools = [{
+      key: "polygon",
+      name: "Polygon"
+    }, {
+      key: "select",
+      name: "Select"
+    }, {
+      key: "apple",
+      name: "Apple"
+    }, {
+      key: "killer",
+      name: "Killer"
+    }, {
+      key: "flower",
+      name: "Flower"
+    }];
+    this._activeTool = "polygon";
+    this.createToolbar();
+  }
+  createToolbar() {
+    this._toolbar = document.createElement("div");
+    this._toolbar.id = "level-editor-gui-toolbar";
+    this._toolbarElements = [];
+    this._tools.map(t => {
+      const el = document.createElement("div");
+      el.className = "level-editor-gui-toolbar-tool" + (this._activeTool === t.key ? " active" : "");
+      el.textContent = t.name;
+      el.setAttribute("key", t.key);
+      el.addEventListener("mousedown", () => {
+        this.activateTool(t);
+      });
+      this._toolbarElements.push(el);
+      this._toolbar.appendChild(el);
+    });
+    this._wrapper.appendChild(this._toolbar);
+  }
+  activateTool(tool) {
+    this._activeTool = tool.key;
+    this._toolbarElements.map(t => {
+      t.className = "level-editor-gui-toolbar-tool" + (t.getAttribute("key") === tool.key ? " active" : "");
+    });
   }
   mouseOnVertex(e) {
     let minDist = 10;
@@ -62,7 +106,7 @@ class LevelEditorGUI {
   }
   addEventListeners() {
     window.addEventListener('resize', () => {
-      this.resizeCanvas();
+      this.resize();
     });
     this._canvas.addEventListener("contextmenu", (e) => {
       e.preventDefault();
@@ -171,9 +215,9 @@ class LevelEditorGUI {
   vytoy(vy) {
     return vy * this._zoom + this._viewPortOffset.y;
   }
-  resizeCanvas() {
-    this._canvas.width = this._container.offsetWidth;
-    this._canvas.height = this._container.offsetHeight;
+  resize() {
+    this._canvas.width = this._wrapper.width = this._container.offsetWidth;
+    this._canvas.height = this._wrapper.height = this._container.offsetHeight;
   }
   newLevel() {
     this._editor.newLevel();
