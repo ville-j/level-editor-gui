@@ -47,7 +47,7 @@ class LevelEditorGUI {
       key: "killer",
       name: "Killer"
     }, {
-      key: "flower",
+      key: "exit",
       name: "Flower"
     }];
     this._activeTool = "polygon";
@@ -259,6 +259,10 @@ class LevelEditorGUI {
               }
             }
           }
+
+          if (this._activeTool === "apple" || this._activeTool === "killer" || this._activeTool === "exit") {
+            this._editor.createObject(this.xtovx(event.x), this.ytovy(event.y), this._activeTool);
+          }
           break;
         case 1:
           this._middleDrag = true;
@@ -304,6 +308,7 @@ class LevelEditorGUI {
           });
         }
       }
+
       if (this._middleDrag && this._preMouse) {
         this._viewPortOffset.x += event.x - this._preMouse.x;
         this._viewPortOffset.y += event.y - this._preMouse.y;

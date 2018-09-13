@@ -39,11 +39,13 @@
 <body>
   <div id="level-editor"></div>
   <script>
-    var editor = LEG({
-      element: "level-editor",
-      server: "http://localhost:3123"
-    });
-    editor.newLevel();
+    window.onload = function () {
+      var editor = LEG({
+        element: "level-editor",
+        server: "http://localhost:3123"
+      });
+      editor.newLevel();
+    }
   </script>
 </body>
 
