@@ -4,7 +4,8 @@
   "description": "Graphical user interface for level-editor package",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "budo src/index.js:bundle.js --live"
   },
   "author": "Ville Jänkälä",
   "license": "ISC"

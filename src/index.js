@@ -104,17 +104,30 @@ class LevelEditorGUI {
     this._editor.level.polygons.map(p => {
       p.vertices.map(v => {
         let distance = Math.hypot(e.x - this.vxtox(v.x), e.y - this.vytoy(v.y));
-        if (distance < minDist && !this._ap) {
+        if (distance < minDist) {
           minDist = distance;
           cv = v;
           cp = p;
         }
       });
     });
+
     return {
       polygon: cp,
       vertex: cv
     }
+  }
+  getCloseObject(e) {
+    let minDist = 10;
+    let co;
+    this._editor.level.objects.map(o => {
+      let distance = Math.hypot(e.x - this.vxtox(o.x), e.y - this.vytoy(o.y));
+      if (distance < minDist) {
+        minDist = distance;
+        co = o;
+      }
+    });
+    return co;
   }
   zoom(e) {
     let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
@@ -127,6 +140,10 @@ class LevelEditorGUI {
 
     this._viewPortOffset.x += e.clientX - this.vxtox(mousePointX);
     this._viewPortOffset.y += e.clientY - this.vytoy(mousePointY);
+  }
+  clearSelection() {
+    this._selection.vertices = [];
+    this._selection.objects = [];
   }
   addEventListeners() {
     window.addEventListener('resize', () => {
@@ -203,6 +220,28 @@ class LevelEditorGUI {
 
           if (this._activeTool === "select") {
             let v = this.getCloseVertex(event);
+            let o = this.getCloseObject(event);
+
+            if (!v.vertex && !o && !e.ctrlKey) {
+              this.clearSelection();
+            }
+            if (o) {
+              let existing = this._selection.objects.findIndex(oe => {
+                return oe.id === o.id;
+              });
+
+              if (existing < 0) {
+                if (e.ctrlKey)
+                  this._selection.objects.push(o);
+                else {
+                  this.clearSelection();
+                  this._selection.objects = [o];
+                }
+              } else {
+                if (e.ctrlKey)
+                  this._selection.objects.splice(existing, 1);
+              }
+            }
             if (v.vertex) {
               let existing = this._selection.vertices.findIndex(ve => {
                 return ve.vertex.id === v.vertex.id;
@@ -210,14 +249,14 @@ class LevelEditorGUI {
               if (existing < 0) {
                 if (e.ctrlKey)
                   this._selection.vertices.push(v);
-                else
+                else {
+                  this.clearSelection();
                   this._selection.vertices = [v];
+                }
               } else {
                 if (e.ctrlKey)
                   this._selection.vertices.splice(existing, 1);
               }
-            } else {
-              this._selection.vertices = [];
             }
           }
           break;
@@ -259,6 +298,9 @@ class LevelEditorGUI {
         if (this._drag) {
           this._selection.vertices.map(v => {
             this._editor.updateVertex(v.vertex, v.polygon, this.xtovx(this.vxtox(v.vertex.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.vertex.y) + (event.y - this._preMouse.y)));
+          });
+          this._selection.objects.map(v => {
+            this._editor.updateObject(v, this.xtovx(this.vxtox(v.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.y) + (event.y - this._preMouse.y)));
           });
         }
       }
@@ -413,6 +455,9 @@ class LevelEditorGUI {
     this._ctx.fillStyle = "#fff";
     this._selection.vertices.map(v => {
       this._ctx.fillRect(v.vertex.x - 2.5 / this._zoom, v.vertex.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
+    });
+    this._selection.objects.map(v => {
+      this._ctx.fillRect(v.x - 2.5 / this._zoom, v.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
     });
     this._ctx.restore();
   }
