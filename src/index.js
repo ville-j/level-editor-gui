@@ -77,22 +77,10 @@ class LevelEditorGUI {
     });
   }
   mouseOnVertex(e) {
-    let minDist = 10;
-    let cv;
-    let cp;
-    this._editor.level.polygons.map(p => {
-      p.vertices.map(v => {
-        let distance = Math.hypot(e.x - this.vxtox(v.x), e.y - this.vytoy(v.y));
-        if (distance < minDist && !this._ap) {
-          minDist = distance;
-          cv = v;
-          cp = p;
-        }
-      });
-    });
-    if (cv) {
-      this._av = this._editor.createVertex(this.xtovx(e.x), this.ytovy(e.y), cp, cv.id, this._direction);
-      this._ap = cp;
+    let cv = this.getCloseVertex(e);
+    if (cv.vertex) {
+      this._av = this._editor.createVertex(this.xtovx(e.x), this.ytovy(e.y), cv.polygon, cv.vertex.id, this._direction);
+      this._ap = cv.polygon;
       return true;
     }
     return false;
