@@ -173,6 +173,19 @@ class LevelEditorGUI {
             this._editor.deleteVertex(this._ap, ci);
           }
           break;
+        case 46:
+          this._selection.vertices.map(v => {
+            this._editor.deleteVertex(v.polygon, v.vertex.id);
+
+            if (v.polygon.vertices.length < 3) {
+              this._editor.deletePolygon(v.polygon.id);
+            }
+          });
+          this._selection.objects.map(o => {
+            this._editor.deleteObject(o.id);
+          });
+          this.clearSelection();
+          break;
       }
     });
     this._canvas.addEventListener("mouseup", (e) => {
