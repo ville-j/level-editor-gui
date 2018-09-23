@@ -8,5 +8,8 @@
     "start": "budo src/index.js:bundle.js --live"
   },
   "author": "Ville Jänkälä",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "file-saver": "^1.3.8"
+  }
 }

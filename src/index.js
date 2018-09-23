@@ -1,4 +1,5 @@
 const LevelEditor = require("level-editor");
+const FileSaver = require('file-saver');
 
 class LevelEditorGUI {
   init(settings) {
@@ -49,6 +50,14 @@ class LevelEditorGUI {
     }, {
       key: "exit",
       name: "Flower"
+    }, {
+      key: "download",
+      name: "Download",
+      onClick: () => {
+        this._editor.createBinary().then(result => {
+          FileSaver.saveAs(new Blob([new Uint8Array(result)]), "test.lev");
+        });
+      }
     }];
     this._activeTool = "polygon";
     this.createToolbar();
@@ -64,6 +73,7 @@ class LevelEditorGUI {
       el.setAttribute("key", t.key);
       el.addEventListener("mousedown", () => {
         this.activateTool(t);
+        t.onClick && t.onClick();
       });
       this._toolbarElements.push(el);
       this._toolbar.appendChild(el);
@@ -264,7 +274,7 @@ class LevelEditorGUI {
           }
 
           if (this._activeTool === "apple" || this._activeTool === "killer" || this._activeTool === "exit") {
-            this._editor.createObject(this.xtovx(event.x), this.ytovy(event.y), this._activeTool);
+            this._editor.createObject(this.xtovx(event.x), this.ytovy(event.y), this._activeTool, "normal", 0);
           }
           break;
         case 1:
