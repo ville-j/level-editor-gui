@@ -162,11 +162,13 @@ class LevelEditorGUI {
           }
           break;
         case 46:
+          let deletedPolygons = [];
           this._selection.vertices.map(v => {
-            this._editor.deleteVertex(v.polygon, v.vertex.id);
-
-            if (v.polygon.vertices.length < 3) {
+            if (v.polygon.vertices.length > 3)
+              this._editor.deleteVertex(v.polygon, v.vertex.id);
+            else if (deletedPolygons.indexOf(v.polygon.id) < 0) {
               this._editor.deletePolygon(v.polygon.id);
+              deletedPolygons.push(v.polygon.id);
             }
           });
           this._selection.objects.map(o => {
