@@ -55,7 +55,7 @@ class LevelEditorGUI {
       name: "Download",
       onClick: () => {
         this._editor.createBinary().then(result => {
-          FileSaver.saveAs(new Blob([new Uint8Array(result)]), "test.lev");
+          FileSaver.saveAs(new Blob([result]), "test.lev");
         });
       }
     }];
@@ -109,7 +109,6 @@ class LevelEditorGUI {
         }
       });
     });
-
     return {
       polygon: cp,
       vertex: cv
@@ -195,6 +194,31 @@ class LevelEditorGUI {
           if (this._activeTool === "select") {
             this._ap = null;
             this._av = null;
+            this._dragMove = false;
+
+            if (this._dragSelectStart && this._dragSelectEnd) {
+              const vxStart = this.xtovx(this._dragSelectStart.x);
+              const vxEnd = this.xtovx(this._dragSelectEnd.x);
+              const vyStart = this.ytovy(this._dragSelectStart.y);
+              const vyEnd = this.ytovy(this._dragSelectEnd.y);
+              this._editor.level.polygons.map(p => {
+                p.vertices.map(v => {
+                  if (v.x > vxStart && v.x < vxEnd && v.y > vyStart && v.y < vyEnd) {
+                    this.handleVertexSelection({
+                      polygon: p,
+                      vertex: v
+                    }, e, true);
+                  }
+                });
+              });
+              this._editor.level.objects.map(o => {
+                if (o.x > vxStart && o.x < vxEnd && o.y > vyStart && o.y < vyEnd) {
+                  this.handleObjectSelection(o, e, true);
+                }
+              });
+            }
+            this._dragSelectEnd = null;
+            this._dragSelectStart = null;
           }
           break;
         case 1:
@@ -239,41 +263,18 @@ class LevelEditorGUI {
               this.clearSelection();
             }
             if (o) {
-              let existing = this._selection.objects.findIndex(oe => {
-                return oe.id === o.id;
-              });
-
-              if (existing < 0) {
-                if (e.ctrlKey)
-                  this._selection.objects.push(o);
-                else {
-                  this.clearSelection();
-                  this._selection.objects = [o];
-                }
-              } else {
-                if (e.ctrlKey)
-                  this._selection.objects.splice(existing, 1);
-              }
+              this.handleObjectSelection(o, e);
+              this._dragMove = true;
             }
             if (v.vertex) {
-              let existing = this._selection.vertices.findIndex(ve => {
-                return ve.vertex.id === v.vertex.id;
-              });
-              if (existing < 0) {
-                if (e.ctrlKey)
-                  this._selection.vertices.push(v);
-                else {
-                  this.clearSelection();
-                  this._selection.vertices = [v];
-                }
-              } else {
-                if (e.ctrlKey)
-                  this._selection.vertices.splice(existing, 1);
-              }
+              this.handleVertexSelection(v, e);
+              this._dragMove = true;
             }
-          }
 
-          if (this._activeTool === "apple" || this._activeTool === "killer" || this._activeTool === "exit") {
+            if (!this._dragMove) {
+              this._dragSelectStart = event;
+            }
+          } else if (this._activeTool === "apple" || this._activeTool === "killer" || this._activeTool === "exit") {
             this._editor.createObject(this.xtovx(event.x), this.ytovy(event.y), this._activeTool, "normal", 0);
           }
           break;
@@ -312,13 +313,16 @@ class LevelEditorGUI {
       }
 
       if (this._activeTool === "select") {
-        if (this._drag) {
+        if (this._dragMove) {
           this._selection.vertices.map(v => {
             this._editor.updateVertex(v.vertex, v.polygon, this.xtovx(this.vxtox(v.vertex.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.vertex.y) + (event.y - this._preMouse.y)));
           });
           this._selection.objects.map(v => {
             this._editor.updateObject(v, this.xtovx(this.vxtox(v.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.y) + (event.y - this._preMouse.y)));
           });
+        }
+        if (this._drag) {
+          this._dragSelectEnd = event;
         }
       }
 
@@ -329,6 +333,38 @@ class LevelEditorGUI {
 
       this._preMouse = event;
     });
+  }
+  handleVertexSelection(v, e, multiselect) {
+    let existing = this._selection.vertices.findIndex(ve => {
+      return ve.vertex.id === v.vertex.id;
+    });
+    if (existing < 0) {
+      if (e.ctrlKey || multiselect)
+        this._selection.vertices.push(v);
+      else {
+        this.clearSelection();
+        this._selection.vertices = [v];
+      }
+    } else {
+      if (e.ctrlKey)
+        this._selection.vertices.splice(existing, 1);
+    }
+  }
+  handleObjectSelection(o, e, multiselect) {
+    let existing = this._selection.objects.findIndex(oe => {
+      return oe.id === o.id;
+    });
+    if (existing < 0) {
+      if (e.ctrlKey || multiselect)
+        this._selection.objects.push(o);
+      else {
+        this.clearSelection();
+        this._selection.objects = [o];
+      }
+    } else {
+      if (e.ctrlKey)
+        this._selection.objects.splice(existing, 1);
+    }
   }
   xtovx(x) {
     return (x - this._viewPortOffset.x) / this._zoom;
@@ -451,7 +487,7 @@ class LevelEditorGUI {
           this._ctx.strokeStyle = "#0b6b08";
           break;
         case 'exit':
-          this._ctx.strokeStyle = "#fff";
+          this._ctx.strokeStyle = "#ffffff";
           break;
       }
       this._ctx.save();
@@ -478,6 +514,15 @@ class LevelEditorGUI {
       this._ctx.fillRect(v.x - 2.5 / this._zoom, v.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
     });
     this._ctx.restore();
+
+    if (this._dragSelectStart && this._dragSelectEnd) {
+      this._ctx.save();
+      this._ctx.strokeStyle = "#c0c0c0";
+      this._ctx.rect(this._dragSelectStart.x, this._dragSelectStart.y, this._dragSelectEnd.x - this._dragSelectStart.x, this._dragSelectEnd.y - this._dragSelectStart.y);
+      this._ctx.stroke();
+      this._ctx.restore();
+    }
+
   }
 }
 
