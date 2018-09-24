@@ -516,13 +516,12 @@ class LevelEditorGUI {
     this._ctx.restore();
 
     if (this._dragSelectStart && this._dragSelectEnd) {
-      this._ctx.save();
-      this._ctx.strokeStyle = "#c0c0c0";
+      this._ctx.beginPath();
+      this._ctx.strokeStyle = "#ffffff";
       this._ctx.rect(this._dragSelectStart.x, this._dragSelectStart.y, this._dragSelectEnd.x - this._dragSelectStart.x, this._dragSelectEnd.y - this._dragSelectStart.y);
+      this._ctx.closePath();
       this._ctx.stroke();
-      this._ctx.restore();
     }
-
   }
 }
 
