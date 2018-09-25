@@ -36,29 +36,37 @@ class LevelEditorGUI {
       this._editor.connect(settings.server);
 
     this._tools = [{
-      key: "polygon",
-      name: "Polygon"
-    }, {
-      key: "select",
-      name: "Select"
-    }, {
-      key: "apple",
-      name: "Apple"
-    }, {
-      key: "killer",
-      name: "Killer"
-    }, {
-      key: "exit",
-      name: "Flower"
-    }, {
-      key: "download",
-      name: "Download",
-      onClick: () => {
-        this._editor.createBinary().then(result => {
-          FileSaver.saveAs(new Blob([result]), "test.lev");
-        });
+        key: "polygon",
+        name: "Polygon"
+      }, {
+        key: "select",
+        name: "Select"
+      }, {
+        key: "apple",
+        name: "Apple"
+      }, {
+        key: "killer",
+        name: "Killer"
+      }, {
+        key: "exit",
+        name: "Flower"
+      },
+      {
+        key: "join",
+        name: "Join",
+        onClick: () => {
+          this._editor.joinRoom('tset');
+        }
+      }, {
+        key: "download",
+        name: "Download",
+        onClick: () => {
+          this._editor.createBinary().then(result => {
+            FileSaver.saveAs(new Blob([result]), "test.lev");
+          });
+        }
       }
-    }];
+    ];
     this._activeTool = "polygon";
     this.createToolbar();
   }
