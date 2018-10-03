@@ -42,13 +42,10 @@
 <body>
   <div id="level-editor"></div>
   <script>
-    window.onload = function () {
-      var editor = LEG({
-        element: "level-editor",
-        server: "http://localhost:3123"
-      });
-      editor.newLevel();
-    }
+    var editor = new LevelEditorGUI({
+      element: "level-editor",
+      server: "http://localhost:3123"
+    });
   </script>
 </body>
 

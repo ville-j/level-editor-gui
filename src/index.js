@@ -2,6 +2,9 @@ const LevelEditor = require("level-editor");
 const FileSaver = require('file-saver');
 
 class LevelEditorGUI {
+  constructor(settings) {
+    this.init(settings);
+  }
   init(settings) {
     this._viewPortOffset = {
       x: 50,
@@ -12,6 +15,7 @@ class LevelEditorGUI {
     this._strokeColor = "#db0855";
     this._drawAllEdges = true;
     this._editor = new LevelEditor();
+    this._editor.newLevel();
     this._container = document.getElementById(settings.element || "level-editor-gui");
     this._canvas = document.createElement("canvas");
     this._wrapper = document.createElement("div");
@@ -534,9 +538,3 @@ class LevelEditorGUI {
 }
 
 module.exports = LevelEditorGUI;
-
-LEG = function (settings) {
-  const leg = new LevelEditorGUI();
-  leg.init(settings);
-  return leg;
-}
