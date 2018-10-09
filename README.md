@@ -4,7 +4,7 @@ npm install budo -g
 ```
 Then as usual you can run
 ```
-npm intall
+npm install
 npm start
 ```
 
