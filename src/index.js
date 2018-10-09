@@ -40,46 +40,71 @@ class LevelEditorGUI {
       this._editor.connect(settings.server);
 
     this._tools = [{
-        key: "polygon",
-        name: "Polygon"
-      }, {
-        key: "select",
-        name: "Select"
-      }, {
-        key: "apple",
-        name: "Apple"
-      }, {
-        key: "killer",
-        name: "Killer"
-      }, {
-        key: "exit",
-        name: "Flower"
-      },
-      {
-        key: "join",
-        name: "Join",
-        onClick: () => {
-          this._editor.joinRoom('tset');
-        }
-      }, {
-        key: "download",
-        name: "Download",
-        onClick: () => {
-          this._editor.createBinary().then(result => {
-            FileSaver.saveAs(new Blob([result]), "test.lev");
-          });
-        }
+      key: "polygon",
+      name: "Polygon"
+    }, {
+      key: "select",
+      name: "Select"
+    }, {
+      key: "apple",
+      name: "Apple"
+    }, {
+      key: "killer",
+      name: "Killer"
+    }, {
+      key: "exit",
+      name: "Flower"
+    },
+    {
+      key: "join",
+      name: "Join",
+      onClick: () => {
+        this._dialog.style.cssText = "position:absolute;left:200px;top:100px;width:200px;height:100px;background:#ffffff;z-index:1000;padding:10px";
       }
+    }, {
+      key: "download",
+      name: "Download",
+      onClick: () => {
+        this._editor.createBinary().then(result => {
+          FileSaver.saveAs(new Blob([result]), "level.lev");
+        });
+      }
+    }
     ];
     this._activeTool = "polygon";
     this.createToolbar();
+    this.createDialog();
+  }
+  createDialog() {
+    let el = document.createElement("div");
+    this._dialog = el;
+    el.style.cssText = "display: none;";
+    let input = document.createElement("input");
+    el.appendChild(input);
+    let joinButton = document.createElement("button");
+    joinButton.innerHTML = "join";
+    let cancelButton = document.createElement("button");
+    cancelButton.innerHTML = "cancel";
+    el.appendChild(joinButton);
+    el.appendChild(cancelButton);
+
+    joinButton.onclick = () => {
+      this._editor.joinRoom(input.value);
+      this._dialog.style.cssText = "display:none";
+    }
+    cancelButton.onclick = () => {
+      this._dialog.style.cssText = "display:none";
+    }
+    this._wrapper.appendChild(el);
   }
   createToolbar() {
     this._toolbar = document.createElement("div");
+    this._toolbar.style.cssText = "position: absolute;left: 0;top: 0;width: 100px;height: 100%;background: #241633;";
     this._toolbar.id = "level-editor-gui-toolbar";
     this._toolbarElements = [];
     this._tools.map(t => {
       const el = document.createElement("div");
+      el.style.cssText = "color: #fff;padding: 10px;";
       el.className = "level-editor-gui-toolbar-tool" + (this._activeTool === t.key ? " active" : "");
       el.textContent = t.name;
       el.setAttribute("key", t.key);
@@ -96,6 +121,12 @@ class LevelEditorGUI {
     this._activeTool = tool.key;
     this._toolbarElements.map(t => {
       t.className = "level-editor-gui-toolbar-tool" + (t.getAttribute("key") === tool.key ? " active" : "");
+
+      if (t.getAttribute("key") === tool.key) {
+        t.style.cssText = "color: #000;background: #fff;padding: 10px;";
+      } else {
+        t.style.cssText = "color: #fff;padding: 10px;";
+      }
     });
   }
   mouseOnVertex(e) {
