@@ -33,9 +33,6 @@ class LevelEditorGUI {
       objects: [],
       pictures: []
     };
-    window.requestAnimationFrame(() => {
-      this.loop();
-    });
     if (settings.server)
       this._editor.connect(settings.server);
 
@@ -74,6 +71,9 @@ class LevelEditorGUI {
     this._activeTool = "polygon";
     this.createToolbar();
     this.createDialog();
+    this._animationLoop = window.requestAnimationFrame(() => {
+      this.loop();
+    });
   }
   createDialog() {
     let el = document.createElement("div");
@@ -429,10 +429,13 @@ class LevelEditorGUI {
     this._editor.newLevel();
   }
   loop() {
-    window.requestAnimationFrame(() => {
+    this.render();
+    this._animationLoop = window.requestAnimationFrame(() => {
       this.loop();
     });
-    this.render();
+  }
+  stopAnimationLoop() {
+    window.cancelAnimationFrame(this._animationLoop);
   }
   pointInPolygon(x, y, vertices) {
     let inside = false;
