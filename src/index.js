@@ -1,5 +1,5 @@
 const LevelEditor = require("level-editor");
-const FileSaver = require('file-saver');
+const FileSaver = require("file-saver");
 
 class LevelEditorGUI {
   constructor(settings) {
@@ -9,14 +9,16 @@ class LevelEditorGUI {
     this._viewPortOffset = {
       x: 50,
       y: 50
-    }
+    };
     this._zoom = 50;
     this._direction = 0;
     this._strokeColor = "#db0855";
     this._drawAllEdges = true;
     this._editor = new LevelEditor();
     this._editor.newLevel();
-    this._container = document.getElementById(settings.element || "level-editor-gui");
+    this._container = document.getElementById(
+      settings.element || "level-editor-gui"
+    );
     this._canvas = document.createElement("canvas");
     this._wrapper = document.createElement("div");
     this._wrapper.style = "position: relative;";
@@ -33,40 +35,46 @@ class LevelEditorGUI {
       objects: [],
       pictures: []
     };
-    if (settings.server)
-      this._editor.connect(settings.server);
+    if (settings.server) this._editor.connect(settings.server);
 
-    this._tools = [{
-      key: "polygon",
-      name: "Polygon"
-    }, {
-      key: "select",
-      name: "Select"
-    }, {
-      key: "apple",
-      name: "Apple"
-    }, {
-      key: "killer",
-      name: "Killer"
-    }, {
-      key: "exit",
-      name: "Flower"
-    },
-    {
-      key: "join",
-      name: "Join",
-      onClick: () => {
-        this._dialog.style.cssText = "position:absolute;left:200px;top:100px;width:200px;height:100px;background:#ffffff;z-index:1000;padding:10px";
+    this._tools = [
+      {
+        key: "polygon",
+        name: "Polygon"
+      },
+      {
+        key: "select",
+        name: "Select"
+      },
+      {
+        key: "apple",
+        name: "Apple"
+      },
+      {
+        key: "killer",
+        name: "Killer"
+      },
+      {
+        key: "exit",
+        name: "Flower"
+      },
+      {
+        key: "join",
+        name: "Join",
+        onClick: () => {
+          this._dialog.style.cssText =
+            "position:absolute;left:200px;top:100px;width:200px;height:100px;background:#ffffff;z-index:1000;padding:10px";
+        }
+      },
+      {
+        key: "download",
+        name: "Download",
+        onClick: () => {
+          this._editor.createBinary().then(result => {
+            FileSaver.saveAs(new Blob([result]), "level.lev");
+          });
+        }
       }
-    }, {
-      key: "download",
-      name: "Download",
-      onClick: () => {
-        this._editor.createBinary().then(result => {
-          FileSaver.saveAs(new Blob([result]), "level.lev");
-        });
-      }
-    }
     ];
     this._activeTool = "polygon";
     this.createToolbar();
@@ -91,21 +99,24 @@ class LevelEditorGUI {
     joinButton.onclick = () => {
       this._editor.joinRoom(input.value);
       this._dialog.style.cssText = "display:none";
-    }
+    };
     cancelButton.onclick = () => {
       this._dialog.style.cssText = "display:none";
-    }
+    };
     this._wrapper.appendChild(el);
   }
   createToolbar() {
     this._toolbar = document.createElement("div");
-    this._toolbar.style.cssText = "position: absolute;left: 0;top: 0;width: 100px;height: 100%;background: #241633;";
+    this._toolbar.style.cssText =
+      "position: absolute;left: 0;top: 0;width: 100px;height: 100%;background: #241633;";
     this._toolbar.id = "level-editor-gui-toolbar";
     this._toolbarElements = [];
     this._tools.map(t => {
       const el = document.createElement("div");
       el.style.cssText = "color: #fff;padding: 10px;";
-      el.className = "level-editor-gui-toolbar-tool" + (this._activeTool === t.key ? " active" : "");
+      el.className =
+        "level-editor-gui-toolbar-tool" +
+        (this._activeTool === t.key ? " active" : "");
       el.textContent = t.name;
       el.setAttribute("key", t.key);
       el.addEventListener("mousedown", () => {
@@ -120,7 +131,9 @@ class LevelEditorGUI {
   activateTool(tool) {
     this._activeTool = tool.key;
     this._toolbarElements.map(t => {
-      t.className = "level-editor-gui-toolbar-tool" + (t.getAttribute("key") === tool.key ? " active" : "");
+      t.className =
+        "level-editor-gui-toolbar-tool" +
+        (t.getAttribute("key") === tool.key ? " active" : "");
 
       if (t.getAttribute("key") === tool.key) {
         t.style.cssText = "color: #000;background: #fff;padding: 10px;";
@@ -132,7 +145,13 @@ class LevelEditorGUI {
   mouseOnVertex(e) {
     let cv = this.getCloseVertex(e);
     if (cv.vertex) {
-      this._av = this._editor.createVertex(this.xtovx(e.x), this.ytovy(e.y), cv.polygon, cv.vertex.id, this._direction);
+      this._av = this._editor.createVertex(
+        this.xtovx(e.x),
+        this.ytovy(e.y),
+        cv.polygon,
+        cv.vertex.id,
+        this._direction
+      );
       this._ap = cv.polygon;
       return true;
     }
@@ -155,7 +174,7 @@ class LevelEditorGUI {
     return {
       polygon: cp,
       vertex: cv
-    }
+    };
   }
   getCloseObject(e) {
     let minDist = 10;
@@ -170,13 +189,11 @@ class LevelEditorGUI {
     return co;
   }
   zoom(e) {
-    let delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    let delta = Math.max(-1, Math.min(1, e.wheelDelta || -e.detail));
     let mousePointX = this.xtovx(e.clientX);
     let mousePointY = this.ytovy(e.clientY);
-    if (delta > 0)
-      this._zoom *= 1.2;
-    else
-      this._zoom *= 0.8;
+    if (delta > 0) this._zoom *= 1.2;
+    else this._zoom *= 0.8;
 
     this._viewPortOffset.x += e.clientX - this.vxtox(mousePointX);
     this._viewPortOffset.y += e.clientY - this.vytoy(mousePointY);
@@ -186,19 +203,27 @@ class LevelEditorGUI {
     this._selection.objects = [];
   }
   addEventListeners() {
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.resize();
     });
-    this._canvas.addEventListener("contextmenu", (e) => {
+    this._canvas.addEventListener("contextmenu", e => {
       e.preventDefault();
     });
-    this._canvas.addEventListener("mousewheel", (e) => {
-      this.zoom(e);
-    }, false);
-    this._canvas.addEventListener("DOMMouseScroll", (e) => {
-      this.zoom(e);
-    }, false);
-    this._canvas.addEventListener("keydown", (e) => {
+    this._canvas.addEventListener(
+      "mousewheel",
+      e => {
+        this.zoom(e);
+      },
+      false
+    );
+    this._canvas.addEventListener(
+      "DOMMouseScroll",
+      e => {
+        this.zoom(e);
+      },
+      false
+    );
+    this._canvas.addEventListener("keydown", e => {
       switch (e.keyCode) {
         case 16:
           this._drawAllEdges = !this._drawAllEdges;
@@ -209,7 +234,13 @@ class LevelEditorGUI {
             let index = this._editor.findVertexIndex(this._av.id, this._ap) + i;
             let ci = this._av.id;
             this._direction = this._direction === 0 ? 1 : 0;
-            this._av = this._editor.createVertex(this._av.x, this._av.y, this._ap, this._ap.vertices[index].id, this._direction);
+            this._av = this._editor.createVertex(
+              this._av.x,
+              this._av.y,
+              this._ap,
+              this._ap.vertices[index].id,
+              this._direction
+            );
             this._editor.deleteVertex(this._ap, ci);
           }
           break;
@@ -230,7 +261,7 @@ class LevelEditorGUI {
           break;
       }
     });
-    this._canvas.addEventListener("mouseup", (e) => {
+    this._canvas.addEventListener("mouseup", e => {
       switch (e.button) {
         case 0:
           this._drag = false;
@@ -246,16 +277,30 @@ class LevelEditorGUI {
               const vyEnd = this.ytovy(this._dragSelectEnd.y);
               this._editor.level.polygons.map(p => {
                 p.vertices.map(v => {
-                  if (v.x > vxStart && v.x < vxEnd && v.y > vyStart && v.y < vyEnd) {
-                    this.handleVertexSelection({
-                      polygon: p,
-                      vertex: v
-                    }, e, true);
+                  if (
+                    v.x > vxStart &&
+                    v.x < vxEnd &&
+                    v.y > vyStart &&
+                    v.y < vyEnd
+                  ) {
+                    this.handleVertexSelection(
+                      {
+                        polygon: p,
+                        vertex: v
+                      },
+                      e,
+                      true
+                    );
                   }
                 });
               });
               this._editor.level.objects.map(o => {
-                if (o.x > vxStart && o.x < vxEnd && o.y > vyStart && o.y < vyEnd) {
+                if (
+                  o.x > vxStart &&
+                  o.x < vxEnd &&
+                  o.y > vyStart &&
+                  o.y < vyEnd
+                ) {
                   this.handleObjectSelection(o, e, true);
                 }
               });
@@ -269,12 +314,12 @@ class LevelEditorGUI {
           break;
       }
     });
-    this._canvas.addEventListener("mousedown", (e) => {
+    this._canvas.addEventListener("mousedown", e => {
       let boundingRect = this._canvas.getBoundingClientRect();
       let event = {
         x: e.clientX - boundingRect.x,
         y: e.clientY - boundingRect.y
-      }
+      };
       switch (e.button) {
         case 0:
           this._drag = true;
@@ -284,17 +329,32 @@ class LevelEditorGUI {
                * Create new polygon and start editing/adding vertices
                */
               if (!this.mouseOnVertex(event)) {
-                this._ap = this._editor.createPolygon([{
-                  x: this.xtovx(event.x),
-                  y: this.ytovy(event.y)
-                }], false);
-                this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap);
+                this._ap = this._editor.createPolygon(
+                  [
+                    {
+                      x: this.xtovx(event.x),
+                      y: this.ytovy(event.y)
+                    }
+                  ],
+                  false
+                );
+                this._av = this._editor.createVertex(
+                  this.xtovx(event.x),
+                  this.ytovy(event.y),
+                  this._ap
+                );
               }
             } else if (this._ap) {
               /**
                * Polygon editing active, add new vertex
                */
-              this._av = this._editor.createVertex(this.xtovx(event.x), this.ytovy(event.y), this._ap, this._av.id, this._direction);
+              this._av = this._editor.createVertex(
+                this.xtovx(event.x),
+                this.ytovy(event.y),
+                this._ap,
+                this._av.id,
+                this._direction
+              );
             }
           }
 
@@ -317,8 +377,18 @@ class LevelEditorGUI {
             if (!this._dragMove) {
               this._dragSelectStart = event;
             }
-          } else if (this._activeTool === "apple" || this._activeTool === "killer" || this._activeTool === "exit") {
-            this._editor.createObject(this.xtovx(event.x), this.ytovy(event.y), this._activeTool, "normal", 0);
+          } else if (
+            this._activeTool === "apple" ||
+            this._activeTool === "killer" ||
+            this._activeTool === "exit"
+          ) {
+            this._editor.createObject(
+              this.xtovx(event.x),
+              this.ytovy(event.y),
+              this._activeTool,
+              "normal",
+              0
+            );
           }
           break;
         case 1:
@@ -342,26 +412,40 @@ class LevelEditorGUI {
       }
     });
 
-    this._canvas.addEventListener("mousemove", (e) => {
+    this._canvas.addEventListener("mousemove", e => {
       let boundingRect = this._canvas.getBoundingClientRect();
       let event = {
         x: e.clientX - boundingRect.x,
         y: e.clientY - boundingRect.y
-      }
+      };
 
       if (this._activeTool === "polygon") {
         if (this._av) {
-          this._editor.updateVertex(this._av, this._ap, this.xtovx(event.x), this.ytovy(event.y));
+          this._editor.updateVertex(
+            this._av,
+            this._ap,
+            this.xtovx(event.x),
+            this.ytovy(event.y)
+          );
         }
       }
 
       if (this._activeTool === "select") {
         if (this._dragMove) {
           this._selection.vertices.map(v => {
-            this._editor.updateVertex(v.vertex, v.polygon, this.xtovx(this.vxtox(v.vertex.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.vertex.y) + (event.y - this._preMouse.y)));
+            this._editor.updateVertex(
+              v.vertex,
+              v.polygon,
+              this.xtovx(this.vxtox(v.vertex.x) + (event.x - this._preMouse.x)),
+              this.ytovy(this.vytoy(v.vertex.y) + (event.y - this._preMouse.y))
+            );
           });
           this._selection.objects.map(v => {
-            this._editor.updateObject(v, this.xtovx(this.vxtox(v.x) + (event.x - this._preMouse.x)), this.ytovy(this.vytoy(v.y) + (event.y - this._preMouse.y)));
+            this._editor.updateObject(
+              v,
+              this.xtovx(this.vxtox(v.x) + (event.x - this._preMouse.x)),
+              this.ytovy(this.vytoy(v.y) + (event.y - this._preMouse.y))
+            );
           });
         }
         if (this._drag) {
@@ -382,15 +466,13 @@ class LevelEditorGUI {
       return ve.vertex.id === v.vertex.id;
     });
     if (existing < 0) {
-      if (e.ctrlKey || multiselect)
-        this._selection.vertices.push(v);
+      if (e.ctrlKey || multiselect) this._selection.vertices.push(v);
       else {
         this.clearSelection();
         this._selection.vertices = [v];
       }
     } else {
-      if (e.ctrlKey)
-        this._selection.vertices.splice(existing, 1);
+      if (e.ctrlKey) this._selection.vertices.splice(existing, 1);
     }
   }
   handleObjectSelection(o, e, multiselect) {
@@ -398,15 +480,13 @@ class LevelEditorGUI {
       return oe.id === o.id;
     });
     if (existing < 0) {
-      if (e.ctrlKey || multiselect)
-        this._selection.objects.push(o);
+      if (e.ctrlKey || multiselect) this._selection.objects.push(o);
       else {
         this.clearSelection();
         this._selection.objects = [o];
       }
     } else {
-      if (e.ctrlKey)
-        this._selection.objects.splice(existing, 1);
+      if (e.ctrlKey) this._selection.objects.splice(existing, 1);
     }
   }
   xtovx(x) {
@@ -445,8 +525,8 @@ class LevelEditorGUI {
       var xj = vertices[j].x,
         yj = vertices[j].y;
 
-      var intersect = ((yi > y) != (yj > y)) &&
-        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      var intersect =
+        yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
       if (intersect) inside = !inside;
     }
 
@@ -472,9 +552,9 @@ class LevelEditorGUI {
     for (let i = 0; i < v.length - 1; i++) {
       let cur = v[i],
         next = v[i + 1];
-      sum += (next.x - cur.x) * (next.y + cur.y)
+      sum += (next.x - cur.x) * (next.y + cur.y);
     }
-    return sum > 0
+    return sum > 0;
   }
   render() {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -486,14 +566,11 @@ class LevelEditorGUI {
     this._ctx.beginPath();
     this._editor.level.polygons.map(p => {
       let d = p.vertices.slice(0);
-      if (this.isGround(p) !== this.isClockwise(p.vertices))
-        d.reverse();
+      if (this.isGround(p) !== this.isClockwise(p.vertices)) d.reverse();
 
       d.map((v, i) => {
-        if (i === 0)
-          this._ctx.moveTo(v.x, v.y);
-        else
-          this._ctx.lineTo(v.x, v.y);
+        if (i === 0) this._ctx.moveTo(v.x, v.y);
+        else this._ctx.lineTo(v.x, v.y);
       });
       this._ctx.lineTo(d[0].x, d[0].y);
     });
@@ -511,10 +588,8 @@ class LevelEditorGUI {
       this._ctx.scale(this._zoom, this._zoom);
       this._ctx.beginPath();
       this._ap.vertices.map((v, i) => {
-        if (i === 0)
-          this._ctx.moveTo(v.x, v.y);
-        else
-          this._ctx.lineTo(v.x, v.y);
+        if (i === 0) this._ctx.moveTo(v.x, v.y);
+        else this._ctx.lineTo(v.x, v.y);
       });
       this._ctx.closePath();
       this._ctx.restore();
@@ -523,16 +598,16 @@ class LevelEditorGUI {
 
     this._editor.level.objects.map(o => {
       switch (o.type) {
-        case 'apple':
+        case "apple":
           this._ctx.strokeStyle = "#dd0404";
           break;
-        case 'killer':
+        case "killer":
           this._ctx.strokeStyle = "#8d0ad3";
           break;
-        case 'start':
+        case "start":
           this._ctx.strokeStyle = "#0b6b08";
           break;
-        case 'exit':
+        case "exit":
           this._ctx.strokeStyle = "#ffffff";
           break;
       }
@@ -554,17 +629,32 @@ class LevelEditorGUI {
     this._ctx.scale(this._zoom, this._zoom);
     this._ctx.fillStyle = "#fff";
     this._selection.vertices.map(v => {
-      this._ctx.fillRect(v.vertex.x - 2.5 / this._zoom, v.vertex.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
+      this._ctx.fillRect(
+        v.vertex.x - 2.5 / this._zoom,
+        v.vertex.y - 2.5 / this._zoom,
+        5 / this._zoom,
+        5 / this._zoom
+      );
     });
     this._selection.objects.map(v => {
-      this._ctx.fillRect(v.x - 2.5 / this._zoom, v.y - 2.5 / this._zoom, 5 / this._zoom, 5 / this._zoom);
+      this._ctx.fillRect(
+        v.x - 2.5 / this._zoom,
+        v.y - 2.5 / this._zoom,
+        5 / this._zoom,
+        5 / this._zoom
+      );
     });
     this._ctx.restore();
 
     if (this._dragSelectStart && this._dragSelectEnd) {
       this._ctx.beginPath();
       this._ctx.strokeStyle = "#ffffff";
-      this._ctx.rect(this._dragSelectStart.x, this._dragSelectStart.y, this._dragSelectEnd.x - this._dragSelectStart.x, this._dragSelectEnd.y - this._dragSelectStart.y);
+      this._ctx.rect(
+        this._dragSelectStart.x,
+        this._dragSelectStart.y,
+        this._dragSelectEnd.x - this._dragSelectStart.x,
+        this._dragSelectEnd.y - this._dragSelectStart.y
+      );
       this._ctx.closePath();
       this._ctx.stroke();
     }
