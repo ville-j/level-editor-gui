@@ -517,45 +517,6 @@ class LevelEditorGUI {
   stopAnimationLoop() {
     window.cancelAnimationFrame(this._animationLoop);
   }
-  pointInPolygon(x, y, vertices) {
-    let inside = false;
-    for (var i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-      var xi = vertices[i].x,
-        yi = vertices[i].y;
-      var xj = vertices[j].x,
-        yj = vertices[j].y;
-
-      var intersect =
-        yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-      if (intersect) inside = !inside;
-    }
-
-    return inside;
-  }
-  isGround(p) {
-    let i = 0;
-    this._editor.level.polygons.map(pp => {
-      if (pp.id !== p.id) {
-        if (this.pointInPolygon(p.vertices[0].x, p.vertices[0].y, pp.vertices))
-          i++;
-      }
-    });
-    return i % 2 !== 0;
-  }
-  isClockwise(vertices) {
-    let sum = 0;
-    let v = vertices.slice(0);
-    v.push({
-      x: vertices[0].x,
-      y: vertices[0].y
-    });
-    for (let i = 0; i < v.length - 1; i++) {
-      let cur = v[i],
-        next = v[i + 1];
-      sum += (next.x - cur.x) * (next.y + cur.y);
-    }
-    return sum > 0;
-  }
   render() {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     this._ctx.fillStyle = "#f2f2f2";
@@ -566,7 +527,12 @@ class LevelEditorGUI {
     this._ctx.beginPath();
     this._editor.level.polygons.map(p => {
       let d = p.vertices.slice(0);
-      if (this.isGround(p) !== this.isClockwise(p.vertices)) d.reverse();
+      if (
+        !this._drawAllEdges &&
+        this._editor.shouldPolygonBeGround(p) !==
+          this._editor.isPolygonClockwise(p)
+      )
+        d.reverse();
 
       d.map((v, i) => {
         if (i === 0) this._ctx.moveTo(v.x, v.y);
