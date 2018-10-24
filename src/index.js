@@ -278,10 +278,10 @@ class LevelEditorGUI {
               this._editor.level.polygons.map(p => {
                 p.vertices.map(v => {
                   if (
-                    v.x > vxStart &&
-                    v.x < vxEnd &&
-                    v.y > vyStart &&
-                    v.y < vyEnd
+                    ((v.x > vxStart && v.x < vxEnd) ||
+                      (v.x < vxStart && v.x > vxEnd)) &&
+                    ((v.y > vyStart && v.y < vyEnd) ||
+                      (v.y < vyStart && v.y > vyEnd))
                   ) {
                     this.handleVertexSelection(
                       {
@@ -296,10 +296,10 @@ class LevelEditorGUI {
               });
               this._editor.level.objects.map(o => {
                 if (
-                  o.x > vxStart &&
-                  o.x < vxEnd &&
-                  o.y > vyStart &&
-                  o.y < vyEnd
+                  ((o.x > vxStart && o.x < vxEnd) ||
+                    (o.x < vxStart && o.x > vxEnd)) &&
+                  ((o.y > vyStart && o.y < vyEnd) ||
+                    (o.y < vyStart && o.y > vyEnd))
                 ) {
                   this.handleObjectSelection(o, e, true);
                 }
