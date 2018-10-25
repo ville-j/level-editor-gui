@@ -7,13 +7,25 @@ class LevelEditorGUI {
   }
   init(settings) {
     this._viewPortOffset = {
-      x: 50,
+      x: 150,
       y: 50
     };
     this._zoom = 50;
     this._direction = 0;
-    this._strokeColor = "#db0855";
-    this._drawAllEdges = true;
+    const defaultColors = {
+      apple: "#dc0000",
+      edges: "#db0855",
+      flower: "#eaeaea",
+      ground: "#181048",
+      killer: "#080808",
+      selectBox: "#ffffff",
+      selection: "#ff7b2e",
+      sky: "#3078bc",
+      start: "#309c30",
+      toolbar: "#131313"
+    };
+    this._colors = { ...defaultColors, ...settings.colors };
+    this._drawAllEdges = false;
     this._editor = new LevelEditor();
     this._editor.newLevel();
     this._container = document.getElementById(
@@ -24,7 +36,7 @@ class LevelEditorGUI {
     this._wrapper.style = "position: relative;";
     this._canvas.tabIndex = 0;
     this._ctx = this._canvas.getContext("2d", {
-      alpha: true
+      alpha: false
     });
     this.addEventListeners();
     this.resize();
@@ -76,12 +88,14 @@ class LevelEditorGUI {
         }
       }
     ];
-    this._activeTool = "polygon";
-    this.createToolbar();
+    this._toolbarElements = [];
+    if (!settings.hasOwnProperty("toolbar") || settings.toolbar)
+      this.createToolbar();
     this.createDialog();
     this._animationLoop = window.requestAnimationFrame(() => {
       this.loop();
     });
+    this.activateTool(this._tools[0]);
   }
   createDialog() {
     let el = document.createElement("div");
@@ -108,9 +122,9 @@ class LevelEditorGUI {
   createToolbar() {
     this._toolbar = document.createElement("div");
     this._toolbar.style.cssText =
-      "position: absolute;left: 0;top: 0;width: 100px;height: 100%;background: #241633;";
+      "position: absolute;left: 0;top: 0;width: 100px;height: 100%;background: " +
+      this._colors.toolbar;
     this._toolbar.id = "level-editor-gui-toolbar";
-    this._toolbarElements = [];
     this._tools.map(t => {
       const el = document.createElement("div");
       el.style.cssText = "color: #fff;padding: 10px;";
@@ -136,9 +150,10 @@ class LevelEditorGUI {
         (t.getAttribute("key") === tool.key ? " active" : "");
 
       if (t.getAttribute("key") === tool.key) {
-        t.style.cssText = "color: #000;background: #fff;padding: 10px;";
+        t.style.cssText =
+          "color: #000;background: #fff;padding: 10px; opacity: 0.8;";
       } else {
-        t.style.cssText = "color: #fff;padding: 10px;";
+        t.style.cssText = "color: #fff;padding: 10px; opacity: 0.8;";
       }
     });
   }
@@ -518,9 +533,10 @@ class LevelEditorGUI {
     window.cancelAnimationFrame(this._animationLoop);
   }
   render() {
-    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-    this._ctx.fillStyle = "#f2f2f2";
-    this._ctx.strokeStyle = this._strokeColor;
+    this._ctx.fillStyle = this._colors.ground;
+    this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
+    this._ctx.fillStyle = this._colors.sky;
+    this._ctx.strokeStyle = this._colors.edges;
     this._ctx.save();
     this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
     this._ctx.scale(this._zoom, this._zoom);
@@ -565,16 +581,16 @@ class LevelEditorGUI {
     this._editor.level.objects.map(o => {
       switch (o.type) {
         case "apple":
-          this._ctx.strokeStyle = "#dd0404";
+          this._ctx.fillStyle = this._colors.apple;
           break;
         case "killer":
-          this._ctx.strokeStyle = "#8d0ad3";
+          this._ctx.fillStyle = this._colors.killer;
           break;
         case "start":
-          this._ctx.strokeStyle = "#0b6b08";
+          this._ctx.fillStyle = this._colors.start;
           break;
         case "exit":
-          this._ctx.strokeStyle = "#ffffff";
+          this._ctx.fillStyle = this._colors.flower;
           break;
       }
       this._ctx.save();
@@ -584,7 +600,7 @@ class LevelEditorGUI {
       this._ctx.arc(o.x, o.y, 0.4, 0, 2 * Math.PI);
       this._ctx.closePath();
       this._ctx.restore();
-      this._ctx.stroke();
+      this._ctx.fill();
     });
 
     /**
@@ -593,7 +609,7 @@ class LevelEditorGUI {
     this._ctx.save();
     this._ctx.translate(this._viewPortOffset.x, this._viewPortOffset.y);
     this._ctx.scale(this._zoom, this._zoom);
-    this._ctx.fillStyle = "#fff";
+    this._ctx.fillStyle = this._colors.selection;
     this._selection.vertices.map(v => {
       this._ctx.fillRect(
         v.vertex.x - 2.5 / this._zoom,
@@ -614,7 +630,7 @@ class LevelEditorGUI {
 
     if (this._dragSelectStart && this._dragSelectEnd) {
       this._ctx.beginPath();
-      this._ctx.strokeStyle = "#ffffff";
+      this._ctx.strokeStyle = this._colors.selectBox;
       this._ctx.rect(
         this._dragSelectStart.x,
         this._dragSelectStart.y,
