@@ -203,7 +203,7 @@ class LevelEditorGUI {
     });
     return co;
   }
-  zoom(e) {
+  handleZoom(e) {
     let delta = Math.max(-1, Math.min(1, e.wheelDelta || -e.detail));
     let mousePointX = this.xtovx(e.clientX);
     let mousePointY = this.ytovy(e.clientY);
@@ -227,14 +227,14 @@ class LevelEditorGUI {
     this.canvas.addEventListener(
       'mousewheel',
       e => {
-        this.zoom(e);
+        this.handleZoom(e);
       },
       false
     );
     this.canvas.addEventListener(
       'DOMMouseScroll',
       e => {
-        this.zoom(e);
+        this.handleZoom(e);
       },
       false
     );
