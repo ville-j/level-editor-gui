@@ -6,6 +6,7 @@ class LevelEditorGUI {
     this.init(settings);
   }
   init(settings) {
+    this.settings = settings;
     this.viewPortOffset = {
       x: 150,
       y: 50
@@ -33,7 +34,7 @@ class LevelEditorGUI {
     );
     this.canvas = document.createElement('canvas');
     this.wrapper = document.createElement('div');
-    this.wrapper.style = 'position: relative;';
+    this.wrapper.style = 'position: relative; height: 100%;';
     this.canvas.tabIndex = 0;
     this.ctx = this.canvas.getContext('2d', {
       alpha: false
@@ -47,7 +48,6 @@ class LevelEditorGUI {
       objects: [],
       pictures: []
     };
-    if (settings.server) this.editor.connect(settings.server);
 
     this.tools = [
       {
@@ -91,11 +91,38 @@ class LevelEditorGUI {
     this.toolbarElements = [];
     if (!settings.hasOwnProperty('toolbar') || settings.toolbar)
       this.createToolbar();
+    this.activateTool(this.tools[0]);
     this.createDialog();
+
+    if (settings.server) {
+      this.createStatusbar();
+      this.editor.onConnectionStatusChange = status => {
+        this.serverStatusChange(status);
+      };
+      this.editor.connect(settings.server);
+    }
     this.animationLoop = window.requestAnimationFrame(() => {
       this.loop();
     });
-    this.activateTool(this.tools[0]);
+  }
+  serverStatusChange(status) {
+    switch (status) {
+      case 'connecting':
+      case 'reconnecting':
+        this.statusbar.style.background = '#b96914';
+        this.statusbar.innerHTML = 'Connecting to ' + this.settings.server;
+        break;
+      case 'connected':
+        this.statusbar.style.background = '#396915';
+        this.statusbar.innerHTML = 'Connected to ' + this.settings.server;
+        break;
+    }
+  }
+  createStatusbar() {
+    this.statusbar = document.createElement('div');
+    this.statusbar.style.cssText =
+      'position: absolute;left: 0;bottom: 0px;width: 100%;background: black; padding: 10px; color: #ffffff; font-size: 12px;';
+    this.wrapper.appendChild(this.statusbar);
   }
   createDialog() {
     let el = document.createElement('div');
