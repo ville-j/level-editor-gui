@@ -71,11 +71,11 @@ class LevelEditorGUI {
         name: 'Flower'
       },
       {
-        key: 'join',
-        name: 'Join',
+        key: 'rooms',
+        name: 'Rooms',
         onClick: () => {
           this.dialog.style.cssText =
-            'position:absolute;left:200px;top:100px;width:200px;height:100px;background:#ffffff;z-index:1000;padding:10px';
+            'position:absolute;left:0;top:0;width:100%;height:100%;background:#fff;z-index:10;padding:10px;box-sizing:border-box';
         }
       },
       {
@@ -99,6 +99,10 @@ class LevelEditorGUI {
       this.editor.onConnectionStatusChange = status => {
         this.serverStatusChange(status);
       };
+
+      this.editor.onServerRoomsChange = rooms => {
+        this.updateRoomList(rooms);
+      };
       this.editor.connect(settings.server);
     }
     this.animationLoop = window.requestAnimationFrame(() => {
@@ -121,30 +125,73 @@ class LevelEditorGUI {
   createStatusbar() {
     this.statusbar = document.createElement('div');
     this.statusbar.style.cssText =
-      'position: absolute;left: 0;bottom: 0px;width: 100%;background: black; padding: 10px; color: #ffffff; font-size: 12px;';
+      'position: absolute;left: 0;bottom: 0px;width: 100%;background: black; padding: 10px; color: #ffffff; font-size: 12px;z-index: 15';
     this.wrapper.appendChild(this.statusbar);
   }
   createDialog() {
+    const inputStyle = 'margin: 5px 0; padding: 5px;';
+    const buttonStyle =
+      'margin: 5px 0; padding: 5px; min-width: 100px; margin-right: 10px;';
     let el = document.createElement('div');
     this.dialog = el;
     el.style.cssText = 'display: none;';
-    let input = document.createElement('input');
-    el.appendChild(input);
+    this.roomListElement = document.createElement('div');
+    this.roomListElement.style.cssText =
+      'float:left;width:50%;padding: 10px; box-sizing: border-box;';
+    el.appendChild(this.roomListElement);
+
+    this.joinRoomElement = document.createElement('div');
+    this.joinRoomElement.innerHTML = '<h4>Join room</h4>';
+    this.joinRoomElement.style.cssText =
+      'float:left;width:50%;padding: 10px; box-sizing: border-box;';
+
+    this.roomNameInput = document.createElement('input');
+    this.roomNameInput.setAttribute('placeholder', 'Room name');
+    this.roomNameInput.setAttribute('type', 'text');
+    this.roomNameInput.style.cssText = inputStyle;
+    this.joinRoomElement.appendChild(this.roomNameInput);
+    this.joinRoomElement.appendChild(document.createElement('br'));
+
+    this.passwordInput = document.createElement('input');
+    this.passwordInput.setAttribute('placeholder', 'Password');
+    this.passwordInput.style.cssText = inputStyle;
+    this.joinRoomElement.appendChild(this.passwordInput);
+    this.joinRoomElement.appendChild(document.createElement('br'));
+
     let joinButton = document.createElement('button');
-    joinButton.innerHTML = 'join';
+    joinButton.innerHTML = 'Join';
+    joinButton.style.cssText = buttonStyle;
+    this.joinRoomElement.appendChild(joinButton);
+
     let cancelButton = document.createElement('button');
-    cancelButton.innerHTML = 'cancel';
-    el.appendChild(joinButton);
-    el.appendChild(cancelButton);
+    cancelButton.innerHTML = 'Close';
+    cancelButton.style.cssText = buttonStyle;
+    this.joinRoomElement.appendChild(cancelButton);
+
+    el.appendChild(this.joinRoomElement);
 
     joinButton.onclick = () => {
-      this.editor.joinRoom(input.value);
+      this.editor.joinRoom(this.roomNameInput.value, this.passwordInput.value);
       this.dialog.style.cssText = 'display:none';
     };
     cancelButton.onclick = () => {
       this.dialog.style.cssText = 'display:none';
     };
     this.wrapper.appendChild(el);
+  }
+  updateRoomList(rooms) {
+    const itemStyle =
+      'border-bottom: 1px solid #f1f1f1; padding: 10px; font-size: 14px;';
+    this.roomListElement.innerHTML = '<h4>Rooms</h4>';
+    rooms.map(r => {
+      let el = document.createElement('div');
+      el.innerText = r;
+      el.style.cssText = itemStyle;
+      el.onclick = () => {
+        this.roomNameInput.value = r;
+      };
+      this.roomListElement.appendChild(el);
+    });
   }
   createToolbar() {
     this.toolbar = document.createElement('div');
