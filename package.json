@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "budo src/index.js:bundle.js --live -- -s LevelEditorGUI",
     "build": "babel src -d lib",
-    "bundle": "browserify src/index.js -o lib/bundle.js -s LevelEditorGUI",
+    "bundle": "browserify src/index.js -o lib/bundle.js -s LevelEditorGUI -t babelify",
     "lint": "eslint src/index.js"
   },
   "author": "Ville Jänkälä",
@@ -21,6 +21,7 @@
     "@babel/cli": "^7.1.2",
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
+    "babelify": "^10.0.0",
     "eslint": "^5.7.0"
   }
 }
