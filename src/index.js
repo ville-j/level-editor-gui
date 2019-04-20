@@ -125,7 +125,7 @@ class LevelEditorGUI {
   createStatusbar() {
     this.statusbar = document.createElement('div');
     this.statusbar.style.cssText =
-      'position: absolute;left: 0;bottom: 0px;width: 100%;background: black; padding: 10px; color: #ffffff; font-size: 12px;z-index: 15';
+      'position: absolute;left: 0;bottom: 0px;width: 100%;background: black; padding: 10px; color: #ffffff; font-size: 12px;z-index: 15; box-sizing: border-box;';
     this.wrapper.appendChild(this.statusbar);
   }
   createDialog() {
