@@ -22,6 +22,6 @@
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
     "babelify": "^10.0.0",
-    "eslint": "^5.7.0"
+    "eslint": "^5.16.0"
   }
 }
